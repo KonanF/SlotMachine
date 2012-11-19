@@ -9,10 +9,17 @@
 
     var angle = this.angle = Math.floor(360/planesNumber);
 
+    var z = 250; //px  
+    this.rotation = 0;
+    this.planesNumber = planesNumber;
+    this.height = Math.sin((this.angle/2) * (Math.PI/180)) * z * 2;
+    this.el.style.height = this.height + 'px';
+
     var html = '';
     for (var i = 0; i < planesNumber; ++i) {
-      html += '<div class="plane" style="-webkit-transform: rotate3d(1, 0, 0,' + (i * angle) + 'deg)">' + (i + 1) + '</div>';
+      html += '<div class="plane" style="-webkit-transform: rotateX(' + (i * angle) + 'deg) translateZ(250px)">' + (i + 1) + '</div>';
     }
+
     el.innerHTML = html;
     placeToAppend.appendChild(el);
 
@@ -22,13 +29,10 @@
   M.Cylinder.prototype.layout = function () {
     var children = this.el.children;
     var size = children.length;
-    var z = 320; //px  
-    var height = 50;//;px; (Math.cos((this.angle/2) * (180 / Math.PI)) * z * 2);
 
     for (var i = 0; i < size; ++i) {
-      children[i].style.height = height + 'px';
-      children[i].style.marginTop = -(height/2) + 'px';
-      children[i].style.lineHeight = height + 'px';
+      children[i].style.height = this.height + 'px';
+      children[i].style.lineHeight = this.height + 'px';
     }
   };
 
@@ -47,8 +51,9 @@
   };
 
   M.Cylinder.prototype.spin = function () {
-    var rand = Math.ceil(Math.random() * 10);
-    this.el.style['-webkit-transform'] = 'rotateX(' + (rand *this.angle) +'deg)';
+    var rand = Math.ceil(Math.random() * 3 * this.planesNumber);
+    this.rotation = rand *this.angle;
+    this.el.style['-webkit-transform'] = 'translateZ(-250px) rotateX(' + (this.rotation) +'deg)';
   };
 
   M.SlotMachine = function (cylindersNumber, planesNumber) {
@@ -57,10 +62,15 @@
     var el = this.el = d.createElement('div');
     el.className = 'machine';
 
+    var container = d.createElement('div');
+    container.className = 'container';
+    el.appendChild(container);
+
     for (var i = 0; i < cylindersNumber; ++i) {
-      this.cyliders.push(new M.Cylinder(planesNumber, el));
+      this.cyliders.push(new M.Cylinder(planesNumber, container));
     }
 
+    this.togglePerspective();
     this.layout();
 
     d.body.appendChild(el);
@@ -68,7 +78,7 @@
 
   
   M.SlotMachine.prototype.layout = function () {
-    var children = this.el.childNodes;
+    var children = this.el.firstChild.childNodes;
     var size = children.length;
     var width = Math.floor(100/size) + '%';
 
@@ -78,17 +88,24 @@
   };
 
   M.SlotMachine.prototype.toggleBackfaceVisibility = function () {
+    var style = this.el.firstChild.style;
+    if (style['-webkit-transform'] !== 'rotateY(30deg)') {
+      style['-webkit-transform'] = 'rotateY(30deg)';
+    } else {
+      style['-webkit-transform'] = '';
+    }
+    
     for (var i = 0, len = this.cyliders.length; i < len; ++i) {
       this.cyliders[i].toggleBackfaceVisibility();
     }
   };
 
-  M.SlotMachine.prototype.toggleTransformStyle = function () {
+  M.SlotMachine.prototype.togglePerspective = function () {
     var style = this.el.style;
-    if (style['-webkit-perspective'] === '0') {
-      style['-webkit-perspective'] = '1000'; 
+    if (style['-webkit-perspective'] === '100000') {
+      style['-webkit-perspective'] = '5000'; 
     } else {
-      style['-webkit-perspective'] = 0; 
+      style['-webkit-perspective'] = '100000'; 
     }
   };
 
@@ -98,16 +115,16 @@
     }
   };
 
-  var machine = new M.SlotMachine(5, 12);
+  var machine = new M.SlotMachine(5, 36);
 
   var spinBtn = d.getElementById('spin');
   spinBtn.onclick = function () {
     machine.spin();
   };
 
-  var transitionStyleBtn = d.getElementById('transition-style');
-  transitionStyleBtn.onclick = function () {
-    machine.toggleTransformStyle();
+  var perspectiveBtn = d.getElementById('perspective');
+  perspectiveBtn.onclick = function () {
+    machine.togglePerspective();
     if (this.className.indexOf('active') != -1) {
       this.className = 'btn-fb';
     } else {

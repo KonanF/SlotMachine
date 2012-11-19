@@ -1,0 +1,14 @@
+.DS_Store
+*.swp
+*.swo
+*~.nib
+*.uml~
+
+intermediate/
+config.js
+
+*.pbxuser
+*.perspective
+*.perspectivev3
+*.htaccess
+*.project
